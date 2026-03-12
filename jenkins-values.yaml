@@ -1,0 +1,76 @@
+controller:
+  image: jenkins/jenkins
+  tag: 2.452.2-lts-jdk-17
+  resources:
+    requests:
+      cpu: '1'
+      memory: 2Gi
+    limits:
+      cpu: '2'
+      memory: 4Gi
+
+nodeSelector:
+  role: static
+tolerations:
+  - key: role
+    value: static
+    effect: NoSchedule
+
+serviceAccountName: jenkins # IRSA for jenkins
+
+# Admin credentials stores in k8s secrets
+admin:
+  existingSecret: jenkins-admin-secret
+  userKey: jenkins-admin-user
+  passwordKey: jenkins-admin-password
+
+# JVM and java options (Disables the setup wizard and sets JVM heap correctly.)
+javaOpts: '-Xms1024m -Xmx2048m -Djenkins.install.runSetupWizard=false'
+
+# Pre-intall plugins
+installPlugins:
+  - kubernetes
+  - workflow-aggregator
+  - git
+  - configuration-as-code
+  - blueocean
+  - sonar
+  - aws-credentials
+  - kubernetes-credentials
+  - pipeline-stage-view
+  - build-timeout
+# Ingress
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+  hostname: jenkins.gauravgirase.co.in
+  tls:
+    - secretName: jenkins-tls
+      hosts:
+        - jenkins.gauravgirase.co.in
+
+# persistence storage
+persistence:
+  enabled: true
+  storageClass: gp3
+  size: 20Gi
+
+agent:
+  resources:
+    requests:
+      cpu: '500m'
+      memory: 512Mi
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  nodeSelector:
+    role: jenkins-agent
+  tolerations:
+    - key: role
+      value: jenkins-agent
+      effect: NoSchedule
+  podRetention: Never
+  idleMinutes: 0

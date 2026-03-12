@@ -1,4 +1,4 @@
-# Prodcution-Grade Jenkins CI/CD on Amazon EKS
+# Production-Grade Jenkins CI/CD on Amazon EKS
 **Covers:** EKS cluster | Jenkins controller + Agents | SonarQube | ArgoCD | Prometheus | Grafana | Cert-Manager | Ingress | Velero Backup | IRSA Security
 
 ## Install dependencies
@@ -278,3 +278,101 @@ eksctl create iamserviceaccount \
 --attach-policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess \
 --approve
 ```
+### Jenkins helm values.yaml
+Jenkins admin secret
+```bash
+kubectl create secret generic jenkins-admin-secret \
+  --namespace jenkins \
+  --from-literal=jenkins-admin-user=admin \
+  --from-literal=jenkins-admin-password=<strong-password>
+```
+jenkins-values.yaml
+```bash
+controller:
+  image: jenkins/jenkins
+  tag: 2.452.2-lts-jdk-17
+  resources:
+    requests:
+      cpu: '1'
+      memory: 2Gi
+    limits:
+      cpu: '2'
+      memory: 4Gi
+
+nodeSelector:
+  role: static
+tolerations:
+  - key: role
+    value: static
+    effect: NoSchedule
+
+serviceAccountName: jenkins # IRSA for jenkins
+
+# Admin credentials stores in k8s secrets
+admin:
+  existingSecret: jenkins-admin-secret
+  userKey: jenkins-admin-user
+  passwordKey: jenkins-admin-password
+
+# JVM and java options (Disables the setup wizard and sets JVM heap correctly.)
+javaOpts: '-Xms1024m -Xmx2048m -Djenkins.install.runSetupWizard=false'
+
+# Pre-intall plugins
+installPlugins:
+  - kubernetes
+  - workflow-aggregator
+  - git
+  - configuration-as-code
+  - blueocean
+  - sonar
+  - aws-credentials
+  - kubernetes-credentials
+  - pipeline-stage-view
+  - build-timeout
+# Ingress
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+  hostname: jenkins.gauravgirase.co.in
+  tls:
+    - secretName: jenkins-tls
+      hosts:
+        - jenkins.gauravgirase.co.in
+
+# persistence storage
+persistence:
+  enabled: true
+  storageClass: gp3
+  size: 20Gi
+
+agent:
+  resources:
+    requests:
+      cpu: '500m'
+      memory: 512Mi
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  nodeSelector:
+    role: jenkins-agent
+  tolerations:
+    - key: role
+      value: jenkins-agent
+      effect: NoSchedule
+  podRetention: Never
+  idleMinutes: 0
+```
+```bash
+helm repo add jenkins https://charts.jenkins.io
+
+helm upgrade --install jenkins jenkins/jenkins \
+--namespace jenkins \
+-f jenkins-values.yaml
+```
+
+## Custom Jenkins Agent pod template
+Define specialized pod templates for different build types using jenkins
+configuration as code (JCasC)
