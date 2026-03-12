@@ -639,3 +639,22 @@ helm upgrade --install velero vmware-tanzu/velero \
   --set initContainers[0].volumeMounts[0].mountPath=/target \
   --set initContainers[0].volumeMounts[0].name=plugins
 ```
+## Backup schedules
+### Daily fill cluster backup (2am UTC)
+```bash
+velero schedule create daily-full \
+--schedule='0 2 * * *' \
+--ttl 720h # 30 Days retention
+```
+### Hourly jenkins backup
+```bash
+velero schedule create hourly-jenkins \
+--schedule='0 * * * *' \
+--include-namespace jenkins \
+--ttl 72h
+```
+### Restor procedure 
+```bash
+velero restor create --from-backup daily-full-12336776878
+```
+**Note:** Test restore procedure monthly.
