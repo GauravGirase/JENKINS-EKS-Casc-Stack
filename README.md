@@ -611,4 +611,31 @@ helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
 ### For scrap target
 check: monitoing/monitoring.yaml
 
-## 
+## Backup & Disaster Recovery (Velero)
+### Install velero
+```bash
+eksctl create iamserviceaccount \
+--name velero \
+--namespace velero \
+--cluster prod-cicd-cluster \
+--attach-policy-arn arn:aws:iam::<ACCOUNT-ID>:policy/VeleroPolicy \
+--approve
+```
+
+```bash
+helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
+
+helm upgrade --install velero vmware-tanzu/velero \
+  --namespace velero \
+  --set configuration.backupStorageLocation[0].provider=aws \
+  --set configuration.backupStorageLocation[0].bucket=eks-velero-backup \
+  --set configuration.backupStorageLocation[0].config.region=ap-south-1 \
+  --set configuration.volumeSnapshotLocation[0].provider=aws \
+  --set configuration.volumeSnapshotLocation[0].config.region=ap-south-1 \
+  --set serviceAccount.server.create=false \
+  --set serviceAccount.server.name=velero \
+  --set initContainers[0].name=velero-plugin-for-aws \
+  --set initContainers[0].image=velero/velero-plugin-for-aws:v1.9.0 \
+  --set initContainers[0].volumeMounts[0].mountPath=/target \
+  --set initContainers[0].volumeMounts[0].name=plugins
+```
