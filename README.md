@@ -69,7 +69,6 @@ managedNodeGroups:
       - c5.large
       - m5a.large
       - t2.medium
-      - t3.medium
     spot: true
     minSize: 0
     maxSize: 10
