@@ -658,3 +658,80 @@ velero schedule create hourly-jenkins \
 velero restor create --from-backup daily-full-12336776878
 ```
 **Note:** Test restore procedure monthly.
+
+## External Secret Operator
+### Create an IAM Policy for ExternalSecrets
+secret-policy.json
+```bash
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:ap-south-1:<ACCOUNT_ID>:secret:prod/*"
+        }
+    ]
+}
+```
+```bash
+kubectl create namespace external-secrets
+```
+```bash
+eksctl create iamserviceaccount \
+  --name external-secrets \
+  --namespace external-secrets \
+  --cluster prod-cicd-cluster \
+  --attach-policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/ExternalSecretsPolicy \
+  --approve
+```
+
+### Sync AWS secret manager into k8s secrets automatically.
+
+```bash
+helm repo add external-secrets https://charts.external-secrets.io
+helm upgrade --install external-secrets external-secrets/external-secrets \
+  --namespace external-secrets \
+  --create-namespace \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=external-secrets
+```
+
+### Deploy secrets using aws secret manager
+```bash
+apiVersion: external-secrets.io/v1beta1
+kind: ClusterSecretStore # defines where and how to access secrets
+metadata:
+  name: aws-secrets-manager
+spec:
+  provider:
+    aws:
+      service: SecretsManager
+      region: ap-south-1
+      auth:
+        jwt: 
+          serviceAccountRef:
+            name: external-secrets
+            namespace: external-secrets
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: jenkins-github-token
+  namespace: jenkins
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: jenkins-github-token # the name of the Kubernetes secret that will be created
+  data:
+    - secretKey: token
+      remoteRef:
+        key: prod/jenkins/github-token # AWS Secrets Manager secret name/path
+        property: token # the specific key inside that secret JSON.
+```
