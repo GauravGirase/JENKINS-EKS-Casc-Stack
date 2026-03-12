@@ -409,3 +409,59 @@ jenkins:
 ```
 
 ## SonarQube - Code Quality
+**Prerequisites**
+sonarqube requires vm.max_map_count=262144 on the host. Add this via a daemonset or node user data
+
+
+### Sonar-qube-values.yaml
+```bash
+sonarqube:
+  nodeSelector:
+    role: static
+  tolerations:
+    - key: role
+      value: static
+      effect: NoSchedule
+  resources:
+    requests:
+      cpu: '500m'
+      memory: 2Gi
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  persistence:
+    enabled: true
+    storageClass: gp3
+    size: 20Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - name: sonarqube.gauravgirase.co.in
+        path: /
+        pathType: Prefix
+    tls:
+      - secretName: sonarqube-tls
+        hosts:
+          - sonarqube.gauravgirase.co.in
+
+postgresql:
+  persistence:
+    enabled: true
+    storageClass: gp3
+    size: 10Gi
+  nodeSelector:
+    role: static
+  tolerations:
+    - key: role
+      value: static
+      effect: NoSchedule
+```
+### install 
+```bash
+helm add repo sonarqube https://SonarSource.github.io/helm-chart-sonarqube
+helm upgrade --install sonarqube sonarqube/sonarquber \
+--namespace sonarqube -f sonarqube-values.yaml
+```
