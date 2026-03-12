@@ -465,3 +465,150 @@ helm add repo sonarqube https://SonarSource.github.io/helm-chart-sonarqube
 helm upgrade --install sonarqube sonarqube/sonarquber \
 --namespace sonarqube -f sonarqube-values.yaml
 ```
+
+## ArgoCD - GitOps CD
+argocd-values.yaml
+```bash
+global:
+  nodeSelector:
+    role: static
+  tolerations:
+    - key: role
+      value: static
+      effect: NoSchedule
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    hosts:
+      - argocd.gauravgirase.co.in
+    tls:
+      - secretName: argocd-tls
+        hosts:
+          - argocd.gauravgirase.co.in
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+```
+### install
+```bash
+helm repo add argo https://argoproj.github.io/argo-helm
+
+helm upgrade --install argocd argo/argo-cd \
+--namespace argocd -f argocd-values.yaml
+```
+
+### Get initial password
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64
+```
+## ArgoCD Application Defination
+```bash
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+  labels:
+    environment: production
+    team: platform
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/GauravGirase/gitops.git
+    targetRevision: main
+    path: k8s/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - createNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+```
+## Obervability stack (Prometheus + Grafana + Loki)
+### Install kube-prometheus-stack
+```bash
+helm add repo prometheus-community https://prometheus-community.github.io/helm-chart
+```
+monitoring-values.yaml
+```bash
+global:
+  nodeSelector:
+    role: static
+  tolerations:
+    - key: role
+      value: static
+      effect: NoSchedule
+
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          volumeMode: Filesystem
+          resources: 
+            requests:
+              storage: 20Gi
+
+grafana:
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 10Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana.gauravgirase.co.in
+        path: /
+        pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts: 
+          - grafana.gauravgirase.co.in
+  grafana.ini:
+    server: 
+      root_url: 'https://grafana.gauravgirase.co.in'
+  replicaCount: 2
+
+alertManager:
+  alertManagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 5Gi
+```
+### install
+```bash
+helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+--namespace monitoring -f monitoring-values.yaml
+```
+### For scrap target
+check: monitoing/monitoring.yaml
+
+## 

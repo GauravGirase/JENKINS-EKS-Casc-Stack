@@ -1,0 +1,28 @@
+global:
+  nodeSelector:
+    role: static
+  tolerations:
+    - key: role
+      value: static
+      effect: NoSchedule
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/backend-protocol: GRPC
+    hosts:
+      - argocd.gauravgirase.co.in
+    tls:
+      - secretName: argocd-tls
+        hosts:
+          - argocd.gauravgirase.co.in
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

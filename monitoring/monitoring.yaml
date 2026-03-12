@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jenkins-servicemonitor
+  namespace: monitoring  # your prometheus namespace
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jenkins
+  namespaceSelector:
+    matchNames:
+      - jenkins
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: maven-agent-podmonitor
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels:
+      role: jenkins-agent
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s

@@ -1,0 +1,53 @@
+global:
+  nodeSelector:
+    role: static
+  tolerations:
+    - key: role
+      value: static
+      effect: NoSchedule
+
+prometheus:
+  prometheusSpec:
+    retention: 30d
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          volumeMode: Filesystem
+          resources: 
+            requests:
+              storage: 20Gi
+
+grafana:
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 10Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana.gauravgirase.co.in
+        path: /
+        pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts: 
+          - grafana.gauravgirase.co.in
+  grafana.ini:
+    server: 
+      root_url: 'https://grafana.gauravgirase.co.in'
+  replicaCount: 2
+
+alertManager:
+  alertManagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          resources:
+            requests:
+              storage: 5Gi
