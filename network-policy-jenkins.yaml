@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: jenkins-network-policy
+  namespace: jenkins
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports: [{port: 8080, protocol: TCP}]
+    - from:
+      - podSelector: {}
+  egress:
+    - {} # allow all egress, Jenkins agents pulling Docker images, plugins, etc.

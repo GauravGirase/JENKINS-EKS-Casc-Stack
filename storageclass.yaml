@@ -1,0 +1,14 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp3
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.aws.com  # dynamically create EBS volumes for pods.
+parameters:
+  type: gp3
+  encrypted: "true"
+# This ensures the volume is created in the same AZ as the pod. Without this, pods may fail with:
+# volume node affinity conflict
+volumeBindingMode: WaitForFirstConsumer  
+allowVolumeExpansion: true # Allows resizing PVCs without deleting them.

@@ -1,0 +1,78 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: prod-cicd-cluster
+  region: ap-south-1
+  version: "1.29"
+  tags:
+    Environment: production
+    Team: Platform
+
+availabilityZones:
+  - ap-south-1a
+  - ap-south-1b
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+
+  # system/infrastructure nodes
+  - name: system-nodes
+    instanceType: t3.small
+    minSize: 2
+    maxSize: 5
+    desiredCapacity: 2
+    privateNetworking: true
+    volumeSize: 10
+    volumeType: gp3
+    labels:
+      role: system
+    taints:
+      - key: role
+        value: system
+        effect: NoSchedule
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+
+  # static workload nodes
+  - name: static-workload-nodes
+    instanceType: t3.small
+    minSize: 2
+    maxSize: 4
+    desiredCapacity: 2
+    privateNetworking: true
+    volumeSize: 20
+    volumeType: gp3
+    labels:
+      role: static
+    taints:
+      - key: role
+        value: static
+        effect: NoSchedule
+
+  # Jenkins agent nodes (spot)
+  - name: jenkins-agent-nodes
+    instanceTypes:
+      - m5.large
+      - c5.large
+      - m5a.large
+      - t2.medium
+      - t3.medium
+    spot: true
+    minSize: 0
+    maxSize: 10
+    desiredCapacity: 0
+    privateNetworking: true
+    volumeSize: 20
+    volumeType: gp3
+    labels:
+      role: jenkins-agent
+    taints:
+      - key: role
+        value: jenkins-agent
+        effect: NoSchedule
