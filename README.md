@@ -376,3 +376,36 @@ helm upgrade --install jenkins jenkins/jenkins \
 ## Custom Jenkins Agent pod template
 Define specialized pod templates for different build types using jenkins
 configuration as code (JCasC)
+jcasc/jenkins-casc-configmap.yaml
+```bash
+jenkins:
+  cloud:
+    - kubernetes:
+        name: kubernetes
+        serverUrl: https://kubernetes.default.svc
+        namespace: jenkins
+        podTemplates:
+          - name: maven-agent
+            label: maven
+            nodeSelector:
+              role: jenkins-agent
+            tolerations:
+              - key: role
+                value: jenkins-agent
+                effect: NoSchedule
+            containers:
+              - name: maven
+                image: maven:3.9-eclipse-temurin-17
+                command: ["sleep"]
+                args: ["99d"]
+                resource_request_cpu: '1'
+                resource_request_memory: '1Gi'
+                resource_limit_cpu: '4'
+                resource_limit_memory: '4Gi'
+            volumes:
+              - persistenceVolumeClaim:
+                  claimName: maven-cache-efs   # make sure this exists
+                  mountPath: /root/.m2
+```
+
+## SonarQube - Code Quality
