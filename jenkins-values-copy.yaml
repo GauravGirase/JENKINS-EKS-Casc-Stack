@@ -741,6 +741,8 @@ controller:
     # -- Ingress annotations
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
+      alb.ingress.kubernetes.io/healthcheck-path: /login
+      alb.ingress.kubernetes.io/healthcheck-port: "8080"
       nginx.ingress.kubernetes.io/ssl-redirect: 'true'
       kubernetes.io/ingress.class: alb
       alb.ingress.kubernetes.io/scheme: internet-facing   # makes ALB public
