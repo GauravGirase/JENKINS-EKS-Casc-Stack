@@ -744,7 +744,7 @@ controller:
       # alb.ingress.kubernetes.io/healthcheck-path: /login
       # alb.ingress.kubernetes.io/healthcheck-port: "8080"
       nginx.ingress.kubernetes.io/ssl-redirect: 'true'
-      service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
       # kubernetes.io/ingress.class: alb
       # alb.ingress.kubernetes.io/scheme: internet-facing   # makes ALB public
       external-dns.alpha.kubernetes.io/hostname: jenkins.gauravgirase.co.in
