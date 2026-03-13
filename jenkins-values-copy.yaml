@@ -274,8 +274,9 @@ controller:
 
   probes:
     startupProbe:
+      enabled: false
       # -- Set the failure threshold for the startup probe
-      failureThreshold: 12
+      failureThreshold: 60
       httpGet:
         # -- Set the Pod's HTTP path for the startup probe
         path: '{{ default "" .Values.controller.jenkinsUriPrefix }}/login'
@@ -306,7 +307,7 @@ controller:
 
     readinessProbe:
       # -- Set the failure threshold for the readiness probe
-      failureThreshold: 3
+      failureThreshold: 6
       httpGet:
         # -- Set the Pod's HTTP path for the liveness probe
         path: '{{ default "" .Values.controller.jenkinsUriPrefix }}/login'
@@ -320,7 +321,7 @@ controller:
       # If Startup Probe is not supported on your Kubernetes cluster, you might want to use "initialDelaySeconds" instead.
       # It delays the initial readiness probe while Jenkins is starting
       # -- Set the initial delay for the readiness probe in seconds
-      initialDelaySeconds:
+      initialDelaySeconds: 60
 
   # PodDisruptionBudget config
   podDisruptionBudget:
@@ -754,7 +755,7 @@ controller:
 
     # Set this path to jenkinsUriPrefix above or use annotations to rewrite path
     # -- Ingress path
-    path:
+    path: /login
 
     # configures the hostname e.g. jenkins.example.com
     # -- Ingress hostname
