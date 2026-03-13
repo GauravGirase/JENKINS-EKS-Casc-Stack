@@ -45,7 +45,7 @@ controller:
     repository: "jenkins/jenkins"
 
     # -- Controller image tag override; i.e., tag: "2.440.1-jdk21"
-    tag: 2.440.1-jdk21
+    tag: latest-jdk21
 
     # -- Controller image tag label
     tagLabel: jdk21
