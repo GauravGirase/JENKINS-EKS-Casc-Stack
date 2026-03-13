@@ -20,7 +20,7 @@ managedNodeGroups:
 
   # system/infrastructure nodes
   - name: system-nodes
-    instanceType: t2.xlarge
+    instanceType: t2.large
     minSize: 1
     maxSize: 5
     desiredCapacity: 1
@@ -41,7 +41,7 @@ managedNodeGroups:
 
   # static workload nodes
   - name: static-workload-nodes
-    instanceType: t2.xlarge
+    instanceType: t2.large
     minSize: 1
     maxSize: 4
     desiredCapacity: 1
