@@ -20,12 +20,12 @@ managedNodeGroups:
 
   # system/infrastructure nodes
   - name: system-nodes
-    instanceType: t3.small
-    minSize: 2
+    instanceType: t2.xlarge
+    minSize: 1
     maxSize: 5
-    desiredCapacity: 2
+    desiredCapacity: 1
     privateNetworking: true
-    volumeSize: 30
+    volumeSize: 50
     volumeType: gp3
     labels:
       role: system
@@ -41,10 +41,10 @@ managedNodeGroups:
 
   # static workload nodes
   - name: static-workload-nodes
-    instanceType: t3.small
-    minSize: 2
+    instanceType: t2.xlarge
+    minSize: 1
     maxSize: 4
-    desiredCapacity: 2
+    desiredCapacity: 1
     privateNetworking: true
     volumeSize: 30
     volumeType: gp3
@@ -67,7 +67,7 @@ managedNodeGroups:
     maxSize: 10
     desiredCapacity: 0
     privateNetworking: true
-    volumeSize: 30
+    volumeSize: 50
     volumeType: gp3
     labels:
       role: jenkins-agent

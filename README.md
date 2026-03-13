@@ -28,11 +28,11 @@ managedNodeGroups:
   # system/infrastructure nodes
   - name: system-nodes
     instanceType: t3.small
-    minSize: 2
+    minSize: 1
     maxSize: 5
-    desiredCapacity: 2
+    desiredCapacity: 1
     privateNetworking: true
-    volumeSize: 10
+    volumeSize: 50
     volumeType: gp3
     labels:
       role: system
