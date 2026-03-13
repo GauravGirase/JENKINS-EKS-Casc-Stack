@@ -1295,7 +1295,7 @@ additionalClouds: {}
 
 persistence:
   # -- Enable the use of a Jenkins PVC
-  enabled: false
+  enabled: true
 
   # A manually managed Persistent Volume and Claim
   # Requires persistence.enabled: true
