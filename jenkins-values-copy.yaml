@@ -270,11 +270,10 @@ controller:
   # ~ 2 minutes to allow Jenkins to restart when upgrading plugins. Set ReadinessTimeout to be shorter than LivenessTimeout.
   # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes
   # -- Enable Kubernetes Probes configuration configured in `controller.probes`
-  healthProbes: true
+  healthProbes: false
 
   probes:
     startupProbe:
-      enabled: false
       # -- Set the failure threshold for the startup probe
       failureThreshold: 60
       httpGet:
