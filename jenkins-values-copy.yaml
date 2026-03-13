@@ -674,14 +674,14 @@ controller:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
   # -- Node labels for pod assignment
   nodeSelector:
-    role: system
+    role: static
 
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
   # -- Toleration labels for pod assignment
   tolerations:
     - key: role
       operator: Equal
-      value: system
+      value: static
       effect: NoSchedule
   # -- Set TerminationGracePeriodSeconds
   terminationGracePeriodSeconds:
@@ -973,7 +973,7 @@ agent:
 
   # -- Override the default service account
   # @default -- `serviceAccountAgent.name` if `agent.useDefaultServiceAccount` is `true`
-  serviceAccount: jenkins 
+  serviceAccount: 
 
   # For connecting to the Jenkins controller
   # -- Overrides the Kubernetes Jenkins URL
@@ -1142,7 +1142,7 @@ agent:
 
   # -- Node labels for pod assignment
   nodeSelector:
-    role: system
+    role: jenkins-agent
   # Key Value selectors. Ex:
   # nodeSelector
   #   jenkins-agent: v1
@@ -1295,7 +1295,7 @@ additionalClouds: {}
 
 persistence:
   # -- Enable the use of a Jenkins PVC
-  enabled: true
+  enabled: false
 
   # A manually managed Persistent Volume and Claim
   # Requires persistence.enabled: true
